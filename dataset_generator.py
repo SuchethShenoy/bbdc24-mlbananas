@@ -17,7 +17,7 @@ class TimeWindowDatasetGenerator():
         df = pd.read_csv(student_data_filepath, low_memory=False)
         time_window_milliseconds = time_window*1000
 
-        time_window_df = pd.DataFrame()
+        temp_df_list = []
 
         if exclude_after_notification:
             notification_indices = df[(df['notification'].notna())].index
@@ -51,8 +51,9 @@ class TimeWindowDatasetGenerator():
                                     (df['sessionId']==session_id)])
             temp['label_id'] = count+1
             temp['label'] = label_name
+            temp_df_list.append(temp)
             
-            time_window_df = pd.concat([time_window_df, temp])
+        time_window_df = pd.concat(temp_df_list)
 
         return time_window_df
 
