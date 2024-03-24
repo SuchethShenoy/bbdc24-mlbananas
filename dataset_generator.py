@@ -137,7 +137,9 @@ class TimeWindowDatasetGenerator():
         return time_window_dataset
         
 
-    def get_augmented_gataframe(self, num_samples_per_label=100):
+    def get_augmented_gataframe(self, 
+                                num_samples_per_label=100, 
+                                noise_columns=['x', 'y', 'z', 'hr', 'hrIbi']):
 
         dataset = self.get_labelled_timewindow_dataframe()
         
@@ -148,15 +150,16 @@ class TimeWindowDatasetGenerator():
             label_group = dataset[dataset['label']==l].groupby('label_id')
             label_group_ids = label_group.aggregate({'label_id':'first'})
             sample_count = label_group['label_id'].unique().count()
+            
             while sample_count<num_samples_per_label:
+                
                 label_id_max+=1
                 random_sample_selection = label_group.get_group(label_group_ids.sample().iloc[0].values[0])
                 random_sample_selection_copy = random_sample_selection.copy()
-                random_sample_selection_copy['x'] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy['x'])
-                random_sample_selection_copy['y'] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy['y'])
-                random_sample_selection_copy['z'] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy['z'])
-                random_sample_selection_copy['hr'] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy['hr'])
-                random_sample_selection_copy['hrIbi'] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy['hrIbi'])
+                
+                for col in noise_columns:
+                    random_sample_selection_copy[col] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy[col])
+                
                 random_sample_selection_copy['label_id'] = label_id_max
                 augmented_df_list.append(random_sample_selection_copy)
                 sample_count+=1
