@@ -137,8 +137,46 @@ class TimeWindowDatasetGenerator():
         return time_window_dataset
         
 
+    def get_augmented_gataframe(self, 
+                                num_samples_per_label=100, 
+                                noise_columns=['x', 'y', 'z', 'hr', 'hrIbi']):
+
+        dataset = self.get_labelled_timewindow_dataframe()
+        
+        label_id_max = dataset.label_id.max()
+        augmented_df_list = []
+
+        for l in dataset.label.unique():
+            label_group = dataset[dataset['label']==l].groupby('label_id')
+            label_group_ids = label_group.aggregate({'label_id':'first'})
+            sample_count = label_group['label_id'].unique().count()
+            
+            while sample_count<num_samples_per_label:
+                
+                label_id_max+=1
+                random_sample_selection = label_group.get_group(label_group_ids.sample().iloc[0].values[0])
+                random_sample_selection_copy = random_sample_selection.copy()
+                
+                for col in noise_columns:
+                    random_sample_selection_copy[col] = TimeWindowDatasetGenerator._add_noise(random_sample_selection_copy[col])
+                
+                random_sample_selection_copy['label_id'] = label_id_max
+                augmented_df_list.append(random_sample_selection_copy)
+                sample_count+=1
+
+        augmented_df = pd.concat(augmented_df_list)
+        augmented_dataframe = pd.concat([dataset, augmented_df])
+
+        return augmented_dataframe
+
 
     def _find_nearest_index(index, search_value):
         array = np.asarray(index)
         idx = (np.abs(array - search_value)).argmin()
         return array[idx]
+
+    
+    def _add_noise(series, mean=0.0, std=1.0):
+        noise = np.random.normal(mean, std, len(series))
+        noisy_series = series + series*noise
+        return noisy_series
