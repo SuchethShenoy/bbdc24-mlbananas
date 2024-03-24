@@ -137,7 +137,7 @@ class TimeWindowDatasetGenerator():
         return time_window_dataset
         
 
-    def get_augmented_gataframe(self, 
+    def get_augmented_dataframe(self, 
                                 num_samples_per_label=100, 
                                 noise_columns=['x', 'y', 'z', 'hr', 'hrIbi']):
 
