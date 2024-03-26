@@ -5,3 +5,4 @@ task/
 #Virtual Environment files
 venv/
 env/
+__pycache__/
